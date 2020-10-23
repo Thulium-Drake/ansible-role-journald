@@ -1,0 +1,20 @@
+# {{ ansible_managed }}
+[Unit]
+Description=Journal Remote Sink Service
+Requires=systemd-journal-remote.socket
+
+[Service]
+ExecStart=/usr/lib/systemd/systemd-journal-remote \
+          --listen-http{% if journald_server_ssl %}s{% endif %}=-3 \
+          --output={{ journald_server_log_dir }}/
+User=systemd-journal-remote
+Group=systemd-journal-remote
+PrivateTmp=yes
+PrivateDevices=yes
+PrivateNetwork=yes
+WatchdogSec=1min
+Restart=always
+RestartSec=5
+
+[Install]
+Also=systemd-journal-remote.socket

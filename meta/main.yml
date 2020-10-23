@@ -1,0 +1,22 @@
+---
+galaxy_info:
+  author: Jeffrey van Pelt
+  description: Systemd Journald log forwarding & collection by Ansible
+  company:
+  role_name: journald
+
+  license: GPLv3
+
+  min_ansible_version: 2.10
+
+  platforms:
+    - name: EL
+      versions:
+        - 7
+
+  galaxy_tags:
+    - logging
+    - journald
+    - forwarding
+
+dependencies: []

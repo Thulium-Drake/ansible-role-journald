@@ -1,0 +1,21 @@
+---
+# Destination host where to send the logs to.
+# When this role runs on the host defined below, it will also configure the server components
+journald_server: 'loghost.example.com'
+
+# How long each client should keep their logs
+journald_client_retention: '3week'
+
+###
+# Server configuration
+###
+# Output directory
+journald_server_log_dir: '/log'
+
+# Secure the connections to the server with SSL
+journald_server_ssl: false
+
+# SSL certificate details
+journald_server_ssl_certificate: '/etc/ssl/certs/server.crt'
+journald_server_ssl_key: '/etc/ssl/private/server.key'
+journald_server_ssl_ca_certificate: '/etc/ssl/certs/ca.crt'

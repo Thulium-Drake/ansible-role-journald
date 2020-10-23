@@ -1,0 +1,8 @@
+# {{ ansible_managed }}
+[Journal]
+Storage=persistent
+Compress=yes
+Seal=no
+SplitMode=none
+ForwardToSyslog=no
+MaxRetentionSec={{ journald_client_retention }}

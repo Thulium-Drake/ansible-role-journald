@@ -1,0 +1,35 @@
+---
+- name: 'Ensure Log output dir'
+  file:
+    path: "{{ journald_server_log_dir }}"
+    state: 'directory'
+    mode: 0770
+    owner: 'systemd-journal-remote'
+    group: 'systemd-journal-remote'
+    setype: 'var_log_t'
+
+- name: 'Ensure firewalld'
+  ansible.posix.firewalld:
+    port: '19532/tcp'
+    permanent: true
+    immediate: true
+    state: 'enabled'
+
+- name: 'Ensure systemd-journal-remote config'
+  template:
+    src: 'journal-remote.conf.j2'
+    dest: '/etc/systemd/journal-remote.conf'
+    mode: 0664
+
+- name: 'Ensure systemd-journal-remote service'
+  template:
+    src: 'systemd-journal-remote.service.j2'
+    dest: '/etc/systemd/system/systemd-journal-remote.service'
+    mode: 0664
+  notify: 'restart systemd-journal-remote'
+
+- name: 'Ensure service status'
+  systemd:
+    name: 'systemd-journal-remote.service'
+    state: 'started'
+    enabled: true

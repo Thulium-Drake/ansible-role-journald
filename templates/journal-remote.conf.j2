@@ -1,0 +1,9 @@
+# {{ ansible_managed }}
+[Remote]
+Seal = false
+SplitMode = host
+{% if journald_server_ssl %}
+ServerKeyFile = {{ journald_server_ssl_key }}
+ServerCertificateFile = {{ journald_server_ssl_certificate }}
+TrustedCertificateFile = {{ journald_server_ssl_ca_certificate }}
+{% endif %}
