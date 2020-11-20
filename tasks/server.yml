@@ -6,6 +6,8 @@
     mode: 0770
     owner: 'systemd-journal-remote'
     group: 'systemd-journal-remote'
+    seuser: 'system_u'
+    serole: 'object_r'
     setype: 'var_log_t'
 
 - name: 'Ensure firewalld'
