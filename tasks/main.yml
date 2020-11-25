@@ -1,9 +1,45 @@
 ---
+- name: 'Ensure systemd-journald directories'
+  file:
+    path: '/var/log/journal'
+    state: 'directory'
+    mode: 02755
+    owner: 'root'
+    group: 'systemd-journal'
+    recurse: true
+
 - name: 'Ensure packages'
   package:
     name:
       - 'systemd-journal-gateway'
     state: 'present'
+
+- when:
+    - ansible_facts['os_family'] == 'RedHat'
+    - ansible_facts['distribution_major_version'] | int >= 8
+  block:
+  - name: 'Create SELinux module directory'
+    file:
+      path: '/etc/selinux/modules'
+      state: 'directory'
+
+  - name: 'Copy SELinux module files'
+    copy:
+      dest: "/etc/selinux/modules/{{ file }}"
+      src: "selinux_configs/{{ file }}"
+      mode: 0600
+    loop:
+      - 'journald_connect.pp'
+      - 'journald_connect.te'
+    loop_control:
+      loop_var: 'file'
+
+  - name: 'Load SELinux modules'
+    command: "/usr/sbin/semodule -i /etc/selinux/modules/{{ module }}.pp"
+    loop:
+      - 'journald_connect'
+    loop_control:
+      loop_var: 'module'
 
 - name: 'Ensure systemd-journal-remote config'
   include_tasks: 'server.yml'
@@ -18,15 +54,6 @@
     - 'restart systemd-journald'
 
 - meta: 'flush_handlers'
-
-- name: 'Ensure systemd-journald directory'
-  file:
-    path: '/var/log/journal'
-    state: 'directory'
-    mode: 0755
-    owner: 'root'
-    group: 'systemd-journal'
-    recurse: true
 
 - name: 'Ensure systemd-journal-upload config'
   template:

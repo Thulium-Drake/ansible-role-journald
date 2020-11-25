@@ -12,6 +12,17 @@ journald_server_ssl_ca_certificate: '/etc/ssl/certs/ca.crt'
 # How long each client should keep their logs
 journald_client_retention: '3week'
 
+# Use certificate based SSL authentication
+# This is required on Systemd 239+, even if verification is not enabled
+# Tests have shown that it is only used for authentication, so all clients could use
+# the same certificate
+journald_client_ssl: false
+journald_client_ssl_cert: '/etc/ssl/certs/client.crt'
+journald_client_ssl_key: '/etc/ssl/certs/client.key'
+# Which group has access to the certificate file
+# If you don't need this, set to ''
+journald_client_ssl_group: ''
+
 ###
 # Server configuration
 ###

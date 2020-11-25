@@ -4,3 +4,8 @@ URL = {% if journald_server_ssl %}https://{% else %}http://{% endif %}{{ journal
 {% if journald_server_ssl %}
 TrustedCertificateFile = {{ journald_server_ssl_ca_certificate }}
 {% endif %}
+
+{% if journald_client_ssl %}
+ServerCertificateFile = {{ journald_client_ssl_cert }}
+ServerKeyFile = {{ journald_client_ssl_key }}
+{% endif %}

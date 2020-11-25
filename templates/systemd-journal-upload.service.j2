@@ -1,21 +1,33 @@
 # {{ ansible_managed }}
 [Unit]
 Description=Journal Remote Upload Service
-After=network.target
+Documentation=man:systemd-journal-upload(8)
+Wants=network-online.target
+After=network-online.target
 
 [Service]
-ExecStart=/usr/lib/systemd/systemd-journal-upload \
-          --save-state -m
+ExecStart=/usr/lib/systemd/systemd-journal-upload --save-state
 User=systemd-journal-upload
-PrivateTmp=yes
+DynamicUser=yes
+WatchdogSec=3min
 PrivateDevices=yes
-WatchdogSec=1min
-Restart=always
-RestartSec=5
+ProtectHome=yes
+ProtectControlGroups=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+MemoryDenyWriteExecute=yes
+RestrictRealtime=yes
+RestrictNamespaces=yes
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+SystemCallArchitectures=native
+LockPersonality=yes
+StateDirectory=systemd/journal-upload
+SupplementaryGroups=systemd-journal {% if journald_client_ssl_group != '' %}{{ journald_client_ssl_group }}{% endif %}
 
-# If there are many split up journal files we need a lot of fds to
-# access them all and combine
-LimitNOFILE=16384
+
+# If there are many split up journal files we need a lot of fds to access them
+# all in parallel.
+LimitNOFILE=524288
 
 [Install]
 WantedBy=multi-user.target

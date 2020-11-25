@@ -10,6 +10,33 @@
     serole: 'object_r'
     setype: 'var_log_t'
 
+- when:
+    - ansible_facts['os_family'] == 'RedHat'
+    - ansible_facts['distribution_major_version'] | int >= 8
+  block:
+  - name: 'Create SELinux module directory'
+    file:
+      path: '/etc/selinux/modules'
+      state: 'directory'
+
+  - name: 'Copy SELinux module files'
+    copy:
+      dest: "/etc/selinux/modules/{{ file }}"
+      src: "selinux_configs/{{ file }}"
+      mode: 0600
+    loop:
+      - 'journald_write.pp'
+      - 'journald_write.te'
+    loop_control:
+      loop_var: 'file'
+
+  - name: 'Load SELinux modules'
+    command: "/usr/sbin/semodule -i /etc/selinux/modules/{{ module }}.pp"
+    loop:
+      - 'journald_write'
+    loop_control:
+      loop_var: 'module'
+
 - name: 'Ensure firewalld'
   ansible.posix.firewalld:
     port: '19532/tcp'
