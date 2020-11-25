@@ -1,0 +1,13 @@
+
+module journald_connect 1.0;
+
+require {
+	type unreserved_port_t;
+	type init_t;
+	class tcp_socket name_connect;
+}
+
+#============= init_t ==============
+
+#!!!! This avc can be allowed using the boolean 'nis_enabled'
+allow init_t unreserved_port_t:tcp_socket name_connect;

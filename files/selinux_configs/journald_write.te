@@ -1,0 +1,14 @@
+
+module journald_write 1.0;
+
+require {
+	type var_log_t;
+	type init_t;
+	class file { create rename setattr };
+}
+
+#============= init_t ==============
+
+#!!!! This avc is allowed in the current policy
+allow init_t var_log_t:file create;
+allow init_t var_log_t:file { rename setattr };
