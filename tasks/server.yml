@@ -59,6 +59,6 @@
 
 - name: 'Ensure service status'
   systemd:
-    name: 'systemd-journal-remote.service'
+    name: 'systemd-journal-remote.socket'
     state: 'started'
     enabled: true
