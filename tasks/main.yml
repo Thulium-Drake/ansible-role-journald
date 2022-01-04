@@ -3,7 +3,7 @@
   file:
     path: '/var/log/journal'
     state: 'directory'
-    mode: 02755
+    mode: '2755'
     owner: 'root'
     group: 'systemd-journal'
     recurse: true
