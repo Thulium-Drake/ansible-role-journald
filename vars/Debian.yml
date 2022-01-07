@@ -1,0 +1,2 @@
+---
+journald_remote_package: 'systemd-journal-remote'

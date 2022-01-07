@@ -1,4 +1,8 @@
 ---
+- name: 'Include OS-specific variables'
+  include_vars:
+    file: "{{ ansible_facts['os_family'] }}.yml"
+
 - name: 'Ensure systemd-journald directories'
   file:
     path: '/var/log/journal'
@@ -11,7 +15,7 @@
 - name: 'Ensure packages'
   package:
     name:
-      - 'systemd-journal-gateway'
+      - "{{ journald_remote_package }}"
     state: 'present'
 
 - when:
