@@ -24,6 +24,7 @@
       dest: "/etc/selinux/modules/{{ file }}"
       src: "selinux_configs/{{ file }}"
       mode: 0600
+    register: 'journald_write_selinux'
     loop:
       - 'journald_write.pp'
       - 'journald_write.te'
@@ -36,6 +37,7 @@
       - 'journald_write'
     loop_control:
       loop_var: 'module'
+    when: journald_write_selinux['changed']
 
 - name: 'Ensure firewalld'
   ansible.posix.firewalld:

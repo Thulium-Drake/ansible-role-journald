@@ -32,6 +32,7 @@
       dest: "/etc/selinux/modules/{{ file }}"
       src: "selinux_configs/{{ file }}"
       mode: 0600
+    register: 'journald_connect_selinux'
     loop:
       - 'journald_connect.pp'
       - 'journald_connect.te'
@@ -44,6 +45,7 @@
       - 'journald_connect'
     loop_control:
       loop_var: 'module'
+    when: journald_connect_selinux['changed']
 
 - name: 'Ensure systemd-journal-remote config'
   include_tasks: 'server.yml'
