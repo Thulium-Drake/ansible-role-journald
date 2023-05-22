@@ -1,43 +1,44 @@
 ---
 - name: 'Ensure Log output dir'
-  file:
+  ansible.builtin.file:
     path: "{{ journald_server_log_dir }}"
     state: 'directory'
-    mode: 0770
+    mode: '0770'
     owner: 'systemd-journal-remote'
     group: 'systemd-journal-remote'
     seuser: 'system_u'
     serole: 'object_r'
     setype: 'var_log_t'
 
-- when:
+- name: 'Ensure SELinux configuration'
+  when:
     - ansible_facts['os_family'] == 'RedHat'
     - ansible_facts['distribution_major_version'] | int >= 8
   block:
-  - name: 'Create SELinux module directory'
-    file:
-      path: '/etc/selinux/modules'
-      state: 'directory'
+    - name: 'Create SELinux module directory'
+      ansible.builtin.file:
+        path: '/etc/selinux/modules'
+        state: 'directory'
+        owner: 'root'
+        group: 'root'
+        mode: '0775'
 
-  - name: 'Copy SELinux module files'
-    copy:
-      dest: "/etc/selinux/modules/{{ file }}"
-      src: "selinux_configs/{{ file }}"
-      mode: 0600
-    register: 'journald_write_selinux'
-    loop:
-      - 'journald_write.pp'
-      - 'journald_write.te'
-    loop_control:
-      loop_var: 'file'
+    - name: 'Copy SELinux module files'
+      ansible.builtin.copy:
+        dest: "/etc/selinux/modules/{{ file }}"
+        src: "selinux_configs/{{ file }}"
+        mode: '0600'
+      register: 'journald_write_selinux'
+      notify: 'Load SElinux modules'
+      loop:
+        - 'journald_write.pp'
+        - 'journald_write.te'
+      loop_control:
+        loop_var: 'file'
 
-  - name: 'Load SELinux modules'
-    command: "/usr/sbin/semodule -i /etc/selinux/modules/{{ module }}.pp"
-    loop:
-      - 'journald_write'
-    loop_control:
-      loop_var: 'module'
-    when: journald_write_selinux['changed']
+    - name: 'Load SELinux modules'
+      ansible.builtin.set_fact:
+        journald_selinux_module_load: "{{ journald_selinux_module_load | default([]) + ['journald_write'] }}"
 
 - name: 'Ensure firewalld'
   ansible.posix.firewalld:
@@ -47,20 +48,20 @@
     state: 'enabled'
 
 - name: 'Ensure systemd-journal-remote config'
-  template:
+  ansible.builtin.template:
     src: 'journal-remote.conf.j2'
     dest: '/etc/systemd/journal-remote.conf'
-    mode: 0664
+    mode: '0664'
 
 - name: 'Ensure systemd-journal-remote service'
-  template:
+  ansible.builtin.template:
     src: 'systemd-journal-remote.service.j2'
     dest: '/etc/systemd/system/systemd-journal-remote.service'
-    mode: 0664
-  notify: 'restart systemd-journal-remote'
+    mode: '0664'
+  notify: 'Restart systemd-journal-remote'
 
 - name: 'Ensure service status'
-  systemd:
+  ansible.builtin.systemd:
     name: 'systemd-journal-remote.socket'
     state: 'started'
     enabled: true

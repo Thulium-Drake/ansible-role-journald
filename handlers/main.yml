@@ -1,17 +1,24 @@
 ---
-- name: 'restart systemd-journal-remote'
-  systemd:
+- name: 'Restart systemd-journal-remote'
+  ansible.builtin.systemd:
     name: 'systemd-journal-remote'
     state: 'restarted'
     daemon_reload: true
 
-- name: 'restart systemd-journal-upload'
-  systemd:
+- name: 'Restart systemd-journal-upload'
+  ansible.builtin.systemd:
     name: 'systemd-journal-upload'
     state: 'restarted'
     daemon_reload: true
 
-- name: 'restart systemd-journald'
-  systemd:
+- name: 'Restart systemd-journald'
+  ansible.builtin.systemd:
     name: 'systemd-journald'
     state: 'restarted'
+
+- name: 'Load SELinux modules'
+  ansible.builtin.command: "/usr/sbin/semodule -i /etc/selinux/modules/{{ module }}.pp"
+  loop: "{{ journald_selinux_module_load }}"
+  loop_control:
+    loop_var: 'module'
+  changed_when: true

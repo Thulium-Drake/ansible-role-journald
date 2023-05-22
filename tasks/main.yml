@@ -1,10 +1,10 @@
 ---
 - name: 'Include OS-specific variables'
-  include_vars:
+  ansible.builtin.include_vars:
     file: "{{ ansible_facts['os_family'] }}.yml"
 
 - name: 'Ensure systemd-journald directories'
-  file:
+  ansible.builtin.file:
     path: '/var/log/journal'
     state: 'directory'
     mode: '2755'
@@ -13,72 +13,73 @@
     recurse: true
 
 - name: 'Ensure packages'
-  package:
+  ansible.builtin.package:
     name:
       - "{{ journald_remote_package }}"
     state: 'present'
 
-- when:
+- name: 'Ensure SELinux configuration'
+  when:
     - ansible_facts['os_family'] == 'RedHat'
     - ansible_facts['distribution_major_version'] | int >= 8
   block:
-  - name: 'Create SELinux module directory'
-    file:
-      path: '/etc/selinux/modules'
-      state: 'directory'
+    - name: 'Create SELinux module directory'
+      ansible.builtin.file:
+        path: '/etc/selinux/modules'
+        state: 'directory'
+        owner: 'root'
+        group: 'root'
+        mode: '0775'
 
-  - name: 'Copy SELinux module files'
-    copy:
-      dest: "/etc/selinux/modules/{{ file }}"
-      src: "selinux_configs/{{ file }}"
-      mode: 0600
-    register: 'journald_connect_selinux'
-    loop:
-      - 'journald_connect.pp'
-      - 'journald_connect.te'
-    loop_control:
-      loop_var: 'file'
+    - name: 'Copy SELinux module files'
+      ansible.builtin.copy:
+        dest: "/etc/selinux/modules/{{ file }}"
+        src: "selinux_configs/{{ file }}"
+        mode: '0600'
+      register: 'journald_connect_selinux'
+      loop:
+        - 'journald_connect.pp'
+        - 'journald_connect.te'
+      loop_control:
+        loop_var: 'file'
 
-  - name: 'Load SELinux modules'
-    command: "/usr/sbin/semodule -i /etc/selinux/modules/{{ module }}.pp"
-    loop:
-      - 'journald_connect'
-    loop_control:
-      loop_var: 'module'
-    when: journald_connect_selinux['changed']
+    - name: 'Load SELinux modules'
+      ansible.builtin.set_fact:
+        journald_selinux_module_load: "{{ journald_selinux_module_load | default([]) + ['journald_connect'] }}"
 
 - name: 'Ensure systemd-journal-remote config'
-  include_tasks: 'server.yml'
+  ansible.builtin.include_tasks: 'server.yml'
   when: journald_server == ansible_facts['fqdn']
 
 - name: 'Ensure systemd-journald config'
-  template:
+  ansible.builtin.template:
     src: 'journald.conf.j2'
     dest: '/etc/systemd/journald.conf'
-    mode: 0664
+    mode: '0664'
   notify:
-    - 'restart systemd-journald'
+    - 'Restart systemd-journald'
 
-- meta: 'flush_handlers'
+- name: 'Flush handlers'
+  ansible.builtin.meta: 'flush_handlers'
 
 - name: 'Ensure systemd-journal-upload config'
-  template:
+  ansible.builtin.template:
     src: 'journal-upload.conf.j2'
     dest: '/etc/systemd/journal-upload.conf'
-    mode: 0664
+    mode: '0664'
   notify:
-    - 'restart systemd-journal-upload'
+    - 'Restart systemd-journal-upload'
 
 - name: 'Ensure systemd-journal-upload service'
-  template:
+  ansible.builtin.template:
     src: 'systemd-journal-upload.service.j2'
     dest: '/etc/systemd/system/systemd-journal-upload.service'
-    mode: 0664
+    mode: '0664'
   notify:
-    - 'restart systemd-journal-upload'
+    - 'Restart systemd-journal-upload'
 
 - name: 'Ensure service status'
-  systemd:
+  ansible.builtin.systemd:
     name: 'systemd-journal-upload'
     state: 'started'
     enabled: true

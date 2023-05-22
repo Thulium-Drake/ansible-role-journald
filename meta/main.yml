@@ -2,17 +2,20 @@
 galaxy_info:
   author: thulium_drake
   description: Systemd Journald log forwarding & collection by Ansible
-  company:
   role_name: journald
 
   license: GPLv3
 
-  min_ansible_version: 2.10
+  min_ansible_version: '2.10'
 
   platforms:
+    - name: Debian
+      versions:
+        - bullseye
     - name: EL
       versions:
-        - 7
+        - '7'
+        - '8'
 
   galaxy_tags:
     - logging
